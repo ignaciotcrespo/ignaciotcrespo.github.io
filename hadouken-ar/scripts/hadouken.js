@@ -27,6 +27,8 @@ const hadouken = {
     // Parameters: posX, posY
     handsDetectorCallback: onHandDetected,
 
+    // set to false to disable fluids
+    drawFluids: true,
 }
 
 // ------ INTERNAL ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -54,11 +56,13 @@ function resizeLayers() {
 
 
 function drawFluid(posX, posY) {
-    var pointer = pointers.find(function (p) { return p.id == -1; });
-    if (pointer == null) {
-        pointer = new pointerPrototype();
+    if(hadouken.drawFluids){
+        var pointer = pointers.find(function (p) { return p.id == -1; });
+        if (pointer == null) {
+            pointer = new pointerPrototype();
+        }
+        updatePointerMoveData(pointer, posX, posY);
     }
-    updatePointerMoveData(pointer, posX, posY);
 }
 
 
@@ -109,5 +113,9 @@ function runHandsDetectionInCurrentFrame() {
     });
 }
 
+function updateDarkLayer() {
+    document.getElementById("darkTransparentLayer").style.opacity = "" + hadouken.darkLayerOpacity;
+}
 
-document.getElementById("darkTransparentLayer").style.opacity = "" + hadouken.darkLayerOpacity;
+updateDarkLayer();
+
