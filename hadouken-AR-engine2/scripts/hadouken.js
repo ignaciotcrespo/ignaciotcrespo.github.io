@@ -36,6 +36,12 @@ const hadouken = {
     // set here your own callback for hands detector, in case you create your own detector.
     handsDetectorCallback: onHandDetected,
 
+    // enable face detection
+    eyes: false,
+
+    // callback for faces detected (to draw the eyes when the fluids simulation is active in the hand)
+    faceDetectorCallback: onFaceDetected,
+
     // set to false to disable fluids
     drawFluids: true,
 
@@ -63,6 +69,35 @@ startWebCamera();
 
 function handsDetectorVideoInitialized(width, height) {
     initFluids(width, height);
+    document.getElementById("messageLayer").outerHTML = ""
+}
+
+function onFaceDetected(face){
+    clearFaces();
+    if(hadouken.eyes){
+        drawEye1(face.annotations.leftEyeLower0);
+        drawEye2(face.annotations.rightEyeLower0);
+    }
+}
+
+function drawEye1(eye) {
+    drawEye(eye, fire1);
+}
+
+function drawEye2(eye) {
+    drawEye(eye, fire2);
+}
+
+function drawEye(eye, fire) {
+    try{
+        var posx = parseInt(eye[4][0]);
+        var posy = parseInt(eye[4][1]);
+        fire.mouseX = posx;
+        fire.mouseY = posy;
+        fire.update_fire();
+    }catch(e){
+        console.log("warning: can not draw fire");
+    }
 }
 
 function onHandDetected(prediction){
@@ -84,6 +119,8 @@ function onHandDetected1(prediction){
     }
 }
 
+var isDrawingFluids = hadouken.handsDetectionEngine == 1 ? true : false;
+
 // https://github.com/tensorflow/tfjs-models/tree/master/handpose
 //                thumb: [1, 2, 3, 4],
 //                indexFinger: [5, 6, 7, 8],
@@ -92,6 +129,7 @@ function onHandDetected1(prediction){
 //                pinky: [17, 18, 19, 20],
 //                palmBase: [0]
 function onHandDetected2(prediction){
+    isDrawingFluids = false;
     if(prediction.handInViewConfidence > 0.9) {
         // draw fluids in base middle finger
         var posX = scaleByPixelRatio(prediction.annotations.middleFinger[0][0]);
@@ -105,6 +143,7 @@ function onHandDetected2(prediction){
 //            && isFingerOpen(prediction.annotations.pinky)
         ){
             if(posX > 0 && posY > 0) {
+                isDrawingFluids = true;
 //                console.log("Predictions: ", posX +","+ posY);
                 drawFluid(posX, posY);
             }
